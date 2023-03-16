@@ -138,7 +138,7 @@ pushd $EDITBASE_WORKSPACE
     execute_chroot_script "$DIR/start_chroot_script"
 
     copy_files $CUSTOMIZE_SCRIPT_PATH/files
-    for script in $(find $CUSTOMIZE_SCRIPT_PATH -maxdepth 1 -not -type d -not -path '*/\.*' | sort)
+    for script in $(find $CUSTOMIZE_SCRIPT_PATH -maxdepth 1 -not -type d -not -path '*/\.*' -not -path '*/*\.disabled' | sort)
     do
         execute_chroot_script "$script"
     done
@@ -150,6 +150,14 @@ pushd $EDITBASE_WORKSPACE
       restoreLd
     fi
   popd
+
+  # if there are any files to export, do that now and clean up the export folder
+  if [ -d "$EDITBASE_MOUNT_PATH/export" ]; then
+    pushd $EDITBASE_WORKSPACE
+      copy_files "$EDITBASE_MOUNT_PATH/export"
+    popd
+    rm -rf "$EDITBASE_MOUNT_PATH/export"
+  fi
   
   # unmount first boot, then root partition
   unmount_image $EDITBASE_MOUNT_PATH
